@@ -1,0 +1,91 @@
+---
+title: "EDS 221 Day 8 Activities"
+author: "Josephine Cardelle"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include=FALSE, warning=FALSE, echo=FALSE}
+# General use packages:
+library(tidyverse)
+library(here)
+library(janitor)
+
+# Specifically for plots:
+library(patchwork)
+library(ggrepel)
+library(gghighlight)
+library(paletteer)
+library(ggExtra)
+library(ggbeeswarm)
+
+# And for another dataset we'll explore:
+library(gapminder)
+
+# Spatial
+library(sf)
+```
+
+```{r, include=FALSE, warning=FALSE, echo=FALSE}
+# read in data
+space_launches <-read_csv(here("data", "space_launches.csv"))
+
+```
+
+```{r, include=FALSE, warning=FALSE, echo=FALSE}
+library(showtext)
+font_add_google("Special Elite", family = "special")
+showtext_auto()
+```
+
+# Task 1
+```{r}
+p <- ggplot(space_launches, aes(x = agency, y = launch_year)) +
+  geom_point(aes(color = agency_type, shape = category), fill = "grey", size = 4) +
+  geom_violin()
+
+p +
+  labs(x = "AgEnCy???", y = "lAuNcH_YeAr!@#", title = "this is a title") +
+  theme(panel.background = element_rect(color = "hotpink", size = 10, fill = "orange"), 
+  axis.text.x = element_text(color = "#E53D00" ),
+  axis.text.y = element_text(color = "#ffe900"),
+  axis.title = element_text(family = "special", size = 30),
+    title = element_text(family = "special"),
+  plot.background = element_rect(fill = "#967d69"))
+
+```
+
+
+# Task 2
+```{r}
+sf_emissions <- read_csv(here("data","San_Francisco_Communitywide_Greenhouse_Gas_Inventory.csv"))
+
+
+sf_emissions_sg <- sf_emissions %>%
+  group_by(Sector_General) %>%
+  summarise(total_ghg_em = sum(Emissions_mtCO2e, na.rm = TRUE))
+
+sf_emissions_yt <- sf_emissions %>%
+  group_by(Calendar_Year, Commodity_Type) %>%
+  summarise(total_emmissions = sum(Emissions_mtCO2e, na.rm = TRUE))
+
+sf_subset <- sf_emissions %>%
+  filter(Calendar_Year >= 2005) %>%
+  filter(str_detect(.$Sector_Detail2, "PG&E")) %>%
+  select(Calendar_Year, Sector_Detail2, Emissions_mtCO2e)
+```
+
+# Task 3
+```{r}
+
+ggplot(sf_emissions_sg, aes(x = fct_reorder(Sector_General, total_ghg_em), y = total_ghg_em)) +
+  geom_col(color = "black", aes(fill = Sector_General), show.legend = FALSE) +
+  scale_fill_paletteer_d("tidyquant::tq_dark") +
+  theme_bw() +
+  labs(y = "Total Greenhouse Gas Emissions", x = "General Sector", title = "San Francisco Green House Gas Inventory") +
+  theme(axis.text.x = element_text(angle = 90))
+
+```
+
